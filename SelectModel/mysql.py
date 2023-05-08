@@ -5,10 +5,11 @@
 """
 import time
 
+from .base import SQL_BASE
 import pymysql
 
 # mysql操作
-class Mysql():
+class Mysql(SQL_BASE):
     # 系统数据库
     __SYSTEM_DATABASE = ["information_schema", "mysql", "performance_schema", "sys"]
     # 系统用户

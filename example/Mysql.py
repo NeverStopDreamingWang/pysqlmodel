@@ -57,7 +57,7 @@ mysql_obj = Mysql(**MYSQL_DATABASES)
 """——————创建表——————"""
 # 创建表，已存在直接返回，不存在则创建
 
-# # 表名
+# 表名
 # table_name = "class_tb"
 # # 表字段
 # # 原生 sql 语句
@@ -69,18 +69,18 @@ mysql_obj = Mysql(**MYSQL_DATABASES)
 #
 #
 # # 原生创建
-# sql = """
-# CREATE TABLE `student_tb` (
-#     `id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-#     `name` varchar(20) DEFAULT NULL,
-#     `age` int,
-#     `gender` enum('男','女'),
-#     `phone` varchar(11),
-#     `sid` int not null,
-#     FOREIGN KEY (sid) REFERENCES class_tb(id)
-# );
-# """
-# mysql_obj.create_table(native_sql=sql)
+sql = """
+CREATE TABLE `student_1_tb` (
+    `id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    `name` varchar(20) DEFAULT NULL COMMENT '名称',
+    `age` int,
+    `gender` enum('男','女'),
+    `phone` varchar(11),
+    `sid` int not null,
+    FOREIGN KEY (sid) REFERENCES class_tb(id)
+)COMMENT '学生表';
+"""
+mysql_obj.create_table(native_sql=sql)
 
 """——————指定操作表——————"""
 # 每次执行查询、添加、删除、修改需指定操作表
@@ -347,22 +347,22 @@ class_tb
 
 
 # sql 语句要以 ; 号分隔
-sql = f"""
-    use demo;
-    select id,name,phone from student_tb;
-    update student_tb set age=19 where id=2
-"""
-# 改方法可以执行多条 sql 语句
-result = mysql_obj.execute_native_sql(sql)
-# print(result)
-for query_set in result:
-    print("名称", query_set["name"])
-    print("摘要", query_set["abstract"]["name"], query_set["abstract"]["info"])
-    print("信息", query_set["abstract"]["info"])
-    print("查询时间", query_set["abstract"]["select_time"])
-    if query_set.get("result"):
-        print("查询结果", query_set["result"] if len(query_set["result"]) < 11 else query_set["result"][:10])
-    print("\n")
+# sql = f"""
+#     use demo;
+#     select id,name,phone from student_tb;
+#     update student_tb set age=19 where id=2
+# """
+# # 改方法可以执行多条 sql 语句
+# result = mysql_obj.execute_native_sql(sql)
+# # print(result)
+# for query_set in result:
+#     print("名称", query_set["name"])
+#     print("摘要", query_set["abstract"]["name"], query_set["abstract"]["info"])
+#     print("信息", query_set["abstract"]["info"])
+#     print("查询时间", query_set["abstract"]["select_time"])
+#     if query_set.get("result"):
+#         print("查询结果", query_set["result"] if len(query_set["result"]) < 11 else query_set["result"][:10])
+#     print("\n")
 """
 名称 结果1
 摘要 use demo OK
