@@ -1,4 +1,4 @@
-# PyMysqlModel
+# PySqlModel
 
 #### Description
 基于 pymysql 的模型创建及使用 内置 create、all、update、delete、filter、get 等常用方法

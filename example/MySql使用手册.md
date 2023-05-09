@@ -1,4 +1,4 @@
- # SelectModel——Mysql操作方法
+ # Mysql
 
 #### 描述
 基于 pymysql 的模型创建及使用
@@ -7,25 +7,27 @@
 安装
 
 ```python
-pip install SelectModel
+pip install PySqlModel
 ```
 
 更新
 
 ```python
-pip install -U SelectModel
+pip install -U PySqlModel
 ```
-
-**example 目录下为示例程序**
-
 
 # 使用介绍
 
 #### 连接数据库
 
 ```python
-from SelectModel.mysql import Mysql
+# 导入Mysql模型
+from SqlModel import Mysql
+#from SqlModel.mysql import Mysql
+
+# 导入数据库配置
 from setting import MYSQL_DATABASES
+
 # 数据库配置
 # DATABASES = {
 #     "name": "demo",
@@ -40,6 +42,8 @@ from setting import MYSQL_DATABASES
 mysql_obj = Mysql(**MYSQL_DATABASES)
 ```
 
+
+---
 #### show_databases 查看所有数据库
 
 ```python
@@ -49,6 +53,8 @@ print(database_list)
 ['demo', 'pymysqlmodel_demo']
 ```
 
+
+---
 #### show_user 查看所有用户
 
 ```python
@@ -58,6 +64,7 @@ print(user_list)
 [{'name': 'root', 'host': 'localhost'}]
 ```
 
+---
 #### set_user_host 设置用户登录权限
 
 ```python
@@ -75,6 +82,7 @@ print(user_list)
 ]
 ```
 
+---
 #### show_table 查看所有表
 
 ```python
@@ -84,6 +92,7 @@ print(table_list)
 ['student_tb', 'test_data', 'test_data_copy1', 'test_data_copy2', 'test_data_copy3', 'test_data_copy4']
 ```
 
+---
 #### create_table 创建表
 
 ```python
@@ -100,19 +109,20 @@ mysql_obj.create_table(table_name=table_name, field_dict=class_table_fields)
 
 # 原生创建
 sql = """
-CREATE TABLE `student_tb` (
+CREATE TABLE `student_1_tb` (
     `id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    `name` varchar(20) DEFAULT NULL,
+    `name` varchar(20) DEFAULT NULL COMMENT '名称',
     `age` int,
     `gender` enum('男','女'),
     `phone` varchar(11),
     `sid` int not null,
     FOREIGN KEY (sid) REFERENCES class_tb(id)
-);
+)COMMENT '学生表';
 """
 mysql_obj.create_table(native_sql=sql)
 ```
 
+---
 #### table 指定操作表
 
 ```python
@@ -130,6 +140,7 @@ class_tb
 """
 ```
 
+---
 #### create 添加数据
 
 ```python
@@ -163,6 +174,7 @@ print(create_row)
 """
 ```
 
+---
 #### delete 删除数据
 
 ```python
@@ -181,6 +193,7 @@ print(delete_row)
 """
 ```
 
+---
 #### update 修改数据
 
 ```python
@@ -205,7 +218,7 @@ print(update_row)
 ```
 
 
-
+---
 #### filter 查询数据
 ```python
 mysql_obj.table("student_tb")
@@ -275,6 +288,7 @@ print(result)
 ]
 ```
 
+---
 #### get 单个条件查询数据，查询机制同上（filter）
 
 ```python
@@ -323,7 +337,7 @@ print(result)
 {'s.id': 1, 'a': 18, 'gender': '男'}
 ```
 
-
+---
 #### 聚合查询：filter/get 方法皆可
 
 ```python
@@ -345,7 +359,7 @@ print(result)
 [{'avg_age': Decimal('19.2500')}]
 ```
 
-
+---
 #### 执行原生 sql
 sql 语句要以 ; 号分隔
 
@@ -392,10 +406,10 @@ for i in result:
 ]
 ```
 
-
+其他语句
 ```python
 sql = f"""
-    use demo;
+    use demo; -- 指定数据库
     select id,name,phone from student_tb;
     update student_tb set age=18 where id=2
 """
@@ -433,6 +447,29 @@ for query_set in result:
 """
 ```
 
+##### 注意事项
+
+```python
+# 单表查询
+# 例：
+# 第一种：select * 时，需要指定操作表
+mysql_obj.table("mysql.user") # 指定操作表，获取表字段，否则返回查询的数据异常
+result = mysql_obj.execute_native_sql("select * from mysql.user;")
+print(result)
+
+# 第二种：sql 语句中指定查询字段
+result = mysql_obj.execute_native_sql("select User,Host from mysql.user;")
+print(result)
+
+# 多表查询、或其他查询
+# 请勿使用 select *，请在 sql 中指定查询结果字段
+# 例：
+sql = "select s.name as sname,c.name as cname from student_tb as s, class_tb as c where s.sid = c.id"
+result = mysql_obj.execute_native_sql(sql)
+print(result)
+```
+
+---
 #### 调用 pymysql 执行
 
 ```python
@@ -455,6 +492,7 @@ print(student_list)
 [{'name': '张三', 'age': 18}]
 ```
 
+---
 #### 扩展
 
 ```python

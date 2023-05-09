@@ -1,15 +1,15 @@
 """
-@Project:SelectModel
+@Project:PySqlModel
 @File:mysql.py
 @Author:函封封
 """
 import time
 
-from .base import SQL_BASE
+# from .base import SQL_BASE
 import pymysql
 
 # mysql操作
-class Mysql(SQL_BASE):
+class Mysql():
     # 系统数据库
     __SYSTEM_DATABASE = ["information_schema", "mysql", "performance_schema", "sys"]
     # 系统用户
@@ -327,7 +327,6 @@ class Mysql(SQL_BASE):
         for sql in native_sql_list:
             sql = sql.lower().strip()
             if not sql: continue # 跳过空值
-
             data = {
                 "name": f"结果{idx}",
                 "abstract": {
@@ -335,7 +334,7 @@ class Mysql(SQL_BASE):
                     "info": "OK"
                 },
             }
-            if sql.find("use") != -1:
+            if sql.startswith("use"):
                 start_time = time.time()
                 self.mysql_cursor.execute(sql)
                 end_time = time.time()
@@ -344,13 +343,25 @@ class Mysql(SQL_BASE):
                     "info": "OK",
                     "select_time": end_time-start_time,
                 }
-            elif sql.find("select") != -1 or sql.find("show") != -1:
+            elif sql.startswith("select"):
                 start_time = time.time()
                 self.mysql_cursor.execute(sql)
                 end_time = time.time()
                 tmp_data = self.mysql_cursor.fetchall()
                 result_field = self.extract_sql(sql)
                 tmp_data = self.result(result_field, tmp_data)
+                data["result"] = tmp_data
+                data["abstract"] = {
+                    "name": sql,
+                    "info": "OK",
+                    "select_time": end_time - start_time,
+                }
+            elif sql.startswith("show"):
+                start_time = time.time()
+                self.mysql_cursor.execute(sql)
+                end_time = time.time()
+                tmp_data = self.mysql_cursor.fetchall()
+                tmp_data = [i[0] for i in tmp_data]
                 data["result"] = tmp_data
                 data["abstract"] = {
                     "name": sql,
@@ -400,8 +411,8 @@ class Mysql(SQL_BASE):
             if field == "*":
                 result_field.extend(self.field_list)
                 continue
-            if field.find("as") != -1:
-                field = field.split("as")[-1]
+            if field.find(" as ") != -1:
+                field = field.split(" as ")[-1]
                 field = field.strip()
 
             result_field.append(field)

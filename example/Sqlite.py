@@ -1,6 +1,6 @@
 
 
-from SelectModel.sqlite import Sqlite
+from SqlModel.sqlite import Sqlite
 from setting import SQLITE_DATABASE
 
 """——————连接数据库——————"""

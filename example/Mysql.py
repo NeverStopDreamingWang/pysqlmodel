@@ -1,7 +1,9 @@
 
+# 导入Mysql模型
+from SqlModel import Mysql
+#from SqlModel.mysql import Mysql
 
-
-from SelectModel.mysql import Mysql
+# 导入数据库配置
 from setting import MYSQL_DATABASES
 
 """——————连接数据库——————"""
@@ -69,18 +71,18 @@ mysql_obj = Mysql(**MYSQL_DATABASES)
 #
 #
 # # 原生创建
-sql = """
-CREATE TABLE `student_1_tb` (
-    `id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    `name` varchar(20) DEFAULT NULL COMMENT '名称',
-    `age` int,
-    `gender` enum('男','女'),
-    `phone` varchar(11),
-    `sid` int not null,
-    FOREIGN KEY (sid) REFERENCES class_tb(id)
-)COMMENT '学生表';
-"""
-mysql_obj.create_table(native_sql=sql)
+# sql = """
+# CREATE TABLE `student_1_tb` (
+#     `id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+#     `name` varchar(20) DEFAULT NULL COMMENT '名称',
+#     `age` int,
+#     `gender` enum('男','女'),
+#     `phone` varchar(11),
+#     `sid` int not null,
+#     FOREIGN KEY (sid) REFERENCES class_tb(id)
+# )COMMENT '学生表';
+# """
+# mysql_obj.create_table(native_sql=sql)
 
 """——————指定操作表——————"""
 # 每次执行查询、添加、删除、修改需指定操作表
@@ -301,15 +303,16 @@ class_tb
 
 """——————执行原生 sql——————"""
 # # 可同时执行多条语句
-# # # sql 语句要以 ; 号分隔
+# # sql 语句要以 ; 号分隔
+#
 # sql = f"""
-#     select id,name,age  from student_tb where age > 18;
-#     select id,name,phone from student_tb;
+#      select id,name,age  from student_tb where age > 18;
+#      select id,name,phone from student_tb;
 # """
 # mysql_obj.table("student_tb")
 # # 改方法可以执行多条 sql 语句
 # result = mysql_obj.execute_native_sql(sql)
-# print(result)
+# # print(result)
 # for i in result:
 #     print(i)
 """
@@ -345,13 +348,11 @@ class_tb
 ]
 """
 
-
-# sql 语句要以 ; 号分隔
-# sql = f"""
-#     use demo;
-#     select id,name,phone from student_tb;
-#     update student_tb set age=19 where id=2
-# """
+sql = f"""
+    use demo;
+    select id,name,phone from student_tb;
+    update student_tb set age=19 where id=2
+"""
 # # 改方法可以执行多条 sql 语句
 # result = mysql_obj.execute_native_sql(sql)
 # # print(result)
@@ -381,6 +382,26 @@ class_tb
 摘要 update student_tb set age=18 where id=2 Affected rows：0
 信息 影响行数：1
 查询时间 0.0010013580322265625
+
+
+# 注意事项
+#
+# 单表查询
+# 例：
+# 第一种：手动指定操作表
+# mysql_obj.table("mysql.user") # 指定操作表，获取表字段，否则返回查询的数据异常
+# result = mysql_obj.execute_native_sql("select * from mysql.user;")
+# print(result)
+# 第二种：sql 语句中指定查询字段
+# result = mysql_obj.execute_native_sql("select User,Host from mysql.user;")
+# print(result)
+
+# 多表查询、或其他查询
+# 请勿使用 select *，请在 sql 中指定查询结果字段
+# 例：
+# sql = "select s.name as sname,c.name as cname from student_tb as s, class_tb as c where s.sid = c.id"
+# result = mysql_obj.execute_native_sql(sql)
+# print(result)
 
 
 """
