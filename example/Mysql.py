@@ -1,7 +1,6 @@
-
 # 导入Mysql模型
-from SqlModel import Mysql
-#from SqlModel.mysql import Mysql
+from SqlModel import MySQL
+# from SqlModel.mysql import MySQL
 
 # 导入数据库配置
 from setting import MYSQL_DATABASES
@@ -97,19 +96,18 @@ class_tb
 ['id', 'name']
 """
 
-
 """——————添加数据——————"""
 # 添加数据
 
-# mysql_obj.table("class_tb").create(name="一班")
-#
-#
+# mysql_obj.table("class_tb").create(id=None, name="一班")
+
+
 # name = "张三"
 # age = "18"
 # gender = 1
 # phone = "12345678910"
 # sid = 1
-#
+# 
 # create_row = mysql_obj.table("student_tb").create(name=name,age=age,gender=gender,phone=phone, sid=sid)
 # print(create_row)
 """
@@ -129,48 +127,24 @@ class_tb
 1
 """
 
-
-
 """——————删除数据——————"""
-# mysql_obj.table("student_tb")
-# delete_row = mysql_obj.delete(id=5)
+# delete_row = mysql_obj.table("student_tb").where("id=%s", 5).delete()
 # print(delete_row)
 """
 1
 """
 
-# 或者 原生 sql
-# delete_row = mysql_obj.delete(native_sql=f"delete from student_tb where id>13")
-# print(delete_row)
-"""
-5
-"""
-
 """——————修改数据——————"""
-# mysql_obj.table("student_tb")
-#
-# # 使用 update 方法之前需要先调用，update_condition
-# # update_condition 要修改数据的条件
 # # update 修改结果
-# update_row = mysql_obj.update_condition(age=18).update(age=19)
+# update_row = mysql_obj.table("student_tb").where("age=%s",18).update(age=19)
 # print(update_row)
 """
 2
 """
 
-# 或者 原生 sql
-# 当使用原生 sql 修改时可以直接调用 update 方法
-# update_row = mysql_obj.update(native_sql=f"update student_tb set gender='女' where id=2")
-# print(update_row)
-"""
-1
-"""
-
 """——————查询数据——————"""
-# mysql_obj.table("student_tb")
-
 # 查询所有数据
-# result = mysql_obj.filter()
+# result = mysql_obj.table("student_tb").select()
 # print(result)
 """
 [
@@ -182,7 +156,7 @@ class_tb
 """
 
 # 指定字段
-# result = mysql_obj.filter("name","age")
+# result = mysql_obj.table("student_tb").select("name","age")
 # print(result)
 """
 [
@@ -193,45 +167,18 @@ class_tb
 ]
 """
 
-# # 原生查询
-# result = mysql_obj.filter(native_sql="select name,phone from student_tb where gender='女'")
+# 聚合查询 as 解析
+# result = mysql_obj.table("student_tb").where("id>0 group by gender").select("gender", "avg(age) as age")
 # print(result)
 """
 [
-    {'name': '李四', 'phone': '12345678911'}, 
-    {'name': '王五', 'phone': '12345678912'}
+    {'gender': '男', 'age': Decimal('45.0000')}, 
+    {'gender': '女', 'age': Decimal('13.5000')}
 ]
 """
 
-
-# 自动解析 查询结果字段
-# 纯原生
-# result = mysql_obj.filter(native_sql="select s.name,c.name from student_tb as s, class_tb as c where s.sid = c.id")
-# print(result)
-
-"""
-[
-    {'s.name': '张三', 'c.name': '一班'}, 
-    {'s.name': '李四', 'c.name': '一班'}, 
-    {'s.name': '王五', 'c.name': '二班'}, 
-    {'s.name': '赵六', 'c.name': '一班'}
-]
-"""
-
-# as 查询结果字段重命名
-# result = mysql_obj.filter(native_sql="select s.name as sname,c.name as cname from student_tb as s, class_tb as c where s.sid = c.id")
-# print(result)
-"""
-[
-    {'sname': '张三', 'cname': '一班'}, 
-    {'sname': '李四', 'cname': '一班'}, 
-    {'sname': '王五', 'cname': '二班'}, 
-    {'sname': '赵六', 'cname': '一班'}
-]
-"""
-
-"""——————get 单个条件查询数据，查询机制同上（filter）——————"""
-# result = mysql_obj.get(age=18)
+"""——————find 查询单条数据——————"""
+# result = mysql_obj.table("student_tb").find()
 # print(result)
 """
 {
@@ -244,9 +191,8 @@ class_tb
 }
 """
 
-
 # 指定字段
-# result = mysql_obj.get("name","phone",gender="女")
+# result = mysql_obj.table("student_tb").where("gender=%s", "女").find("name","phone")
 # print(result)
 """
 {
@@ -255,56 +201,10 @@ class_tb
 }
 """
 
-#
-# # 原生查询
-# result = mysql_obj.get(native_sql="select *, name as cname from student_tb where gender='男'")
-# print(result)
-"""
-{
-    'id': 1, 
-    'name': '张三', 
-    'age': 18, 
-    'gender': '男', 
-    'phone': '12345678910', 
-    'sid': 1, 
-    'cname': '张三'
-}
-"""
-
-# result = mysql_obj.get(native_sql="select s.id,age as a,gender from student_tb as s where gender='男'")
-# print(result)
-#
-"""
-{'s.id': 1, 'a': 18, 'gender': '男'}
-"""
-
-
-
-"""——————聚合查询：filter/get 方法皆可——————"""
-# result = mysql_obj.filter("avg(age)")
-# print(result)
-"""
-[{'avg(age)': Decimal('19.2500')}]
-"""
-
-# 命名 as
-# result = mysql_obj.filter("avg(age) as avg_age")
-# print(result)
-"""
-[{'avg_age': Decimal('19.2500')}]
-"""
-
-# result = mysql_obj.filter(native_sql="select avg(age) as avg_age from student_tb")
-# print(result)
-
-"""
-[{'avg_age': Decimal('19.2500')}]
-"""
-
 """——————执行原生 sql——————"""
 # # 可同时执行多条语句
 # # sql 语句要以 ; 号分隔
-#
+# 
 # sql = f"""
 #      select id,name,age  from student_tb where age > 18;
 #      select id,name,phone from student_tb;
@@ -425,49 +325,4 @@ sql = f"""
 """
 (('张三', 18),)
 [{'name': '张三', 'age': 18}]
-"""
-
-"""——————扩展——————"""
-
-# temp_dict = {
-#     "name": "李四",
-#     "age": 18,
-# }
-# # 接受一个 **kwargs 参数
-# result = mysql_obj.filter(**temp_dict)
-# print(result)
-"""
-[
-    {
-        'id': 2, 
-        'name': '李四', 
-        'age': 18, 
-        'gender': '女', 
-        'phone': '12345678911', 
-        'sid': 1
-    }
-]
-"""
-
-# temp = {}
-# if True:
-#     temp["name"] = "王五"
-# if False:
-#     temp["age"] = 19
-#
-# # 接受一个 **kwargs 参数
-# result = mysql_obj.filter(**temp)
-# print(result)
-
-"""
-[
-    {
-        'id': 3, 
-        'name': '王五', 
-        'age': 19, 
-        'gender': '男', 
-        'phone': '12345678912', 
-        'sid': 2
-    }
-]
 """

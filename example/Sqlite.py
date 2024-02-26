@@ -1,6 +1,4 @@
-
-
-from SqlModel.sqlite import Sqlite
+from SqlModel.sqlite import SQLite
 from setting import SQLITE_DATABASE
 
 """——————连接数据库——————"""
@@ -13,12 +11,12 @@ from setting import SQLITE_DATABASE
 #     "port": 3306,
 #     "charset": "utf8",
 # }
-# StudentModel = Mysql(name="demo",user="root",password="123",host="localhost",port=3306,charset="utf8")
+# sqlite3_obj = Sqlite(name="demo",user="root",password="123",host="localhost",port=3306,charset="utf8")
 # 推荐
-StudentModel = Sqlite(**SQLITE_DATABASE)
+sqlite3_obj = Sqlite(**SQLITE_DATABASE)
 
 """——————查看所有表——————"""
-# table_list = StudentModel.show_table()
+# table_list = sqlite3_obj.show_table()
 # print(table_list)
 """
 ['sqlite_sequence', 'student_tb']
@@ -28,18 +26,31 @@ StudentModel = Sqlite(**SQLITE_DATABASE)
 # 创建表，已存在直接返回，不存在则创建
 
 # # 表名
-table_name = "student_tb"
+# table_name = "student_tb"
 # 表字段
 # 原生 sql 语句
-student_table_fields = {
-    "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
-    "name": "VARCHAR(20)",  # 一个字符串为一个字段
-    "age": "INTEGER",
-    "gender": "VARCHAR (1)",
-    "phone": "varchar(11)",
-}
+# student_table_fields = {
+#     "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+#     "name": "VARCHAR(20)",  # 一个字符串为一个字段
+#     "age": "INTEGER",
+#     "gender": "VARCHAR (1)",
+#     "phone": "varchar(11)",
+# }
+# 
+# sqlite3_obj.create_table(table_name,student_table_fields)
 
-StudentModel.create_table(table_name,student_table_fields)
+"""——————指定操作表——————"""
+# 每次执行查询、添加、删除、修改需指定操作表
+# sqlite3_obj.table("student_tb")
+
+# 主要用于设置 表名，获取表字段
+# 同一对象只需设置一次即可
+# print(sqlite3_obj.table_name) # 查看操作表名
+# print(sqlite3_obj.field_list) # 查看字段列表
+"""
+class_tb
+['id', 'name']
+"""
 
 """——————添加数据——————"""
 # # 添加数据
@@ -54,100 +65,77 @@ StudentModel.create_table(table_name,student_table_fields)
 #     "gender": "女",
 #     "phone": "12345678910",
 # }
-# is_success = StudentModel.create(name=name,age=age,gender=gender,phone=phone)
-#
+# create_row = sqlite3_obj.table("student_tb").create(name=name,age=age,gender=gender,phone=phone)
+# print(create_row)
+
 # # 或这样
-# is_success = StudentModel.create(**temp_dict)
+# create_row = sqlite3_obj.create(**temp_dict)
+# print(create_row)
 
 """——————删除数据——————"""
-# is_success = StudentModel.delete(age=18)
-#
-# # 或者 原生 sql
-# is_success = StudentModel.delete(native_sql=f"delete from student_tb where age=18")
-
-"""——————查询全部数据——————"""
-# result = StudentModel.all()
-# print(result)
-#
-# # 指定字段
-# result = StudentModel.all("id","age")
-# print(result)
-
+# delete_row = sqlite3_obj.table("student_tb").where("id=?", 5).delete()
+# print(delete_row)
 """
-[{'id': 1, 'name': '张三2', 'age': 20, 'gender': '2', 'phone': '12345678910'}, {'id': 2, 'name': '张三2', 'age': 20, 'gender': '2', 'phone': '12345678910'}]
-[{'id': 1, 'age': 20}, {'id': 2, 'age': 20}]
-"""
-
-"""——————filter 批量条件查询数据——————"""
-# result = StudentModel.filter(age=18)
-# print(result)
-#
-# # 指定字段
-# result = StudentModel.filter("id","age",gender="男")
-# print(result)
-#
-# # 原生查询
-# result = StudentModel.filter(native_sql="select * from student_tb where gender='男'")
-# print(result)
-#
-# # 自动解析 查询结果字段
-# # as 查询结果字段重命名
-# # 两表联查去除表别名：表别名.字段名
-# result = StudentModel.filter(native_sql="select s.id,age as a,gender from student_tb as s where gender='男'")
-# print(result)
-
-"""
-[{'id': 1, 'name': '张三2', 'age': 18, 'gender': '男', 'phone': '12345678910'}, {'id': 2, 'name': '张三2', 'age': 18, 'gender': '男', 'phone': '12345678910'}]
-[{'id': 1, 'age': 18}, {'id': 2, 'age': 18}]
-[{'id': 1, 'name': '张三2', 'age': 18, 'gender': '男', 'phone': '12345678910'}, {'id': 2, 'name': '张三2', 'age': 18, 'gender': '男', 'phone': '12345678910'}]
-[{'id': 1, 'a': 18, 'gender': '男'}, {'id': 2, 'a': 18, 'gender': '男'}]
-"""
-
-"""——————get 单个条件查询数据——————"""
-# result = StudentModel.get(age=18)
-# print(result)
-#
-# # 指定字段
-# result = StudentModel.get("id","age",gender="男")
-# print(result)
-#
-# # 原生查询
-# result = StudentModel.get(native_sql="select * from student_tb where gender='男'")
-# print(result)
-#
-# # 自动解析 查询结果字段
-# # as 查询结果字段重命名
-# # 两表联查去除表别名：表别名.字段名
-# result = StudentModel.get(native_sql="select s.id,age as a,gender from student_tb as s where gender='男'")
-# print(result)
-
-"""
-{'id': 1, 'name': '张三2', 'age': 18, 'gender': '男', 'phone': '12345678910'}
-{'id': 1, 'age': 18}
-{'id': 1, 'name': '张三2', 'age': 18, 'gender': '男', 'phone': '12345678910'}
-{'id': 1, 'a': 18, 'gender': '男'}
+1
 """
 
 """——————修改数据——————"""
-# # 使用 update 方法之前需要先调用，update_condition
-# # update_condition 要修改数据的条件
-# # update 修改结果
-# is_success = StudentModel.update_condition(id=1).update(age=19)
-#
-# # 或者 原生 sql
-# # 当使用原生 sql 修改时可以直接调用 update 方法
-# is_success = StudentModel.update(native_sql=f"update student_tb set gender='女' where id=2")
+# update 修改结果
+# update_row = sqlite3_obj.table("student_tb").where("age=?", 18).update(age=19)
+# print(update_row)
 
-"""——————聚合查询——————"""
-# result = StudentModel.filter("avg(age)",age=18)
+"""——————查询全部数据——————"""
+# result = sqlite3_obj.table("student_tb").select()
 # print(result)
-#
-# result = StudentModel.filter(native_sql="select avg(age) as a from student_tb")
+"""
+[
+    {'id': 1, 'name': '张三2', 'age': 20, 'gender': '2', 'phone': '12345678910'}, 
+    {'id': 2, 'name': '张三2', 'age': 20, 'gender': '2', 'phone': '12345678910'}
+]
+"""
+
+# # 指定字段
+# result = sqlite3_obj.table("student_tb").select("id","age")
 # print(result)
 
 """
-[{'avg(age)': 18.0}]
-[{'a': 19.0}]
+[
+    {'id': 1, 'age': 20}, 
+    {'id': 2, 'age': 20}
+]
+"""
+
+# 聚合查询 as 解析
+# result = sqlite3_obj.table("student_tb").where("id>0 group by gender").select("gender", "avg(age) as age")
+# print(result)
+"""
+[
+    {'gender': '女', 'age': 22.0}, 
+    {'gender': '男', 'age': 18.0}
+]
+"""
+
+"""——————find 查询单条数据——————"""
+# result = sqlite3_obj.table("student_tb").find()
+# print(result)
+"""
+{
+    'id': 1, 
+    'name': '张三1', 
+    'age': 18, 
+    'gender': '男', 
+    'phone': '12345678910'
+}
+"""
+
+# # 指定字段
+# result = sqlite3_obj.table("student_tb").where("gender=?", "女").find("id","age")
+# print(result)
+"""
+{
+    'id': 9, 
+    'age': 18
+}
 """
 
 """——————调用 sqlite 执行——————"""
@@ -155,21 +143,21 @@ StudentModel.create_table(table_name,student_table_fields)
 #
 # # sql 语句不限
 # sql = f"""
-#     select {",".join(result_field)}  from {StudentModel.table_name} where name like '张%'
+#     select {",".join(result_field)}  from {sqlite3_obj.table_name} where name like '张%'
 # """
 #
 # # 调用实例属性 获取游标对象 执行sql语句
-# StudentModel.sqlite.execute(sql)
-# data = StudentModel.sqlite.fetchone() # 获取单跳查询结果
-# list_data = StudentModel.sqlite.fetchall() # 获取查询结果集
+# sqlite3_obj.sqlite.execute(sql)
+# data = sqlite3_obj.sqlite.fetchone() # 获取单跳查询结果
+# list_data = sqlite3_obj.sqlite.fetchall() # 获取查询结果集
 # print(data)
 # print(list_data)
 #
 # # 调用方法 组织数据
-# student_list = StudentModel.result(result_field,data)
+# student_list = sqlite3_obj.result(result_field,data)
 # print(student_list)
 #
-# student_list = StudentModel.result(result_field,list_data)
+# student_list = sqlite3_obj.result(result_field,list_data)
 # print(student_list)
 
 """
@@ -177,43 +165,4 @@ StudentModel.create_table(table_name,student_table_fields)
 [('张三2', 18)]
 {'name': '张三2', 'age': 19}
 [{'name': '张三2', 'age': 18}]
-"""
-
-"""——————扩展——————"""
-# name = "张三1"
-# age = "18"
-# gender = "男"
-# phone = None
-#
-# # 关键字传参
-# result = StudentModel.filter(name=name,age=age)
-# print(result)
-#
-# temp_dict = {
-#     "name": "张三2",
-#     "age": "20",
-#     "gender": "女",
-#     "phone": "12345678910",
-# }
-# # 接受一个 **kwargs 参数
-# result = StudentModel.filter(**temp_dict)
-# print(result)
-#
-# temp = {}
-# if name:
-#     temp["name"] = name
-# if age:
-#     temp["age"] = age
-# if gender:
-#     temp["gender"] = gender
-# if phone:
-#     temp["phone"] = phone
-# # 接受一个 **kwargs 参数
-# result = StudentModel.filter(**temp)
-# print(result)
-
-"""
-[{'id': 1, 'name': '张三1', 'age': 18, 'gender': '男', 'phone': '12345678910'}]
-[{'id': 2, 'name': '张三2', 'age': 20, 'gender': '女', 'phone': '12345678910'}]
-[{'id': 1, 'name': '张三1', 'age': 18, 'gender': '男', 'phone': '12345678910'}]
 """
