@@ -118,8 +118,8 @@ class MySQL():
 
             # id 字段为null ，默认自增
             self.sql = f"INSERT INTO `{self.table_name}`  (`{field_sql}`) VALUES ({create_sql});"
-            self.args = kwargs.values()
-            rowcount = self.cursor.execute(self.sql, self.args)
+            args = kwargs.values()
+            rowcount = self.cursor.execute(self.sql, args)
             self.connect.commit()
             return rowcount
         except Exception as err:

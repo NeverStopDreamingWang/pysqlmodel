@@ -100,8 +100,8 @@ class SQLite():
 
             # id 字段为null ，默认自增
             self.sql = f"""INSERT INTO `{self.table_name}`  (`{field_sql}`) VALUES ({create_sql});"""
-            self.args = list(kwargs.values())
-            self.cursor.execute(self.sql, self.args)
+            args = list(kwargs.values())
+            self.cursor.execute(self.sql, args)
             self.connect.commit()
             return self.cursor.rowcount
         except Exception as err:
