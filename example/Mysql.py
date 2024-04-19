@@ -1,6 +1,6 @@
-# 导入Mysql模型
-from SqlModel import MySQL
-# from SqlModel.mysql import MySQL
+# 导入MySQL模型
+from PySqlModel import MySQL
+# from PySqlModel.mysql import MySQL
 
 # 导入数据库配置
 from setting import MYSQL_DATABASES
@@ -15,37 +15,15 @@ from setting import MYSQL_DATABASES
 #     "port": 3306,
 #     "charset": "utf8",
 # }
-# mysql_obj = Mysql(name="demo",user="root",password="123",host="localhost",port=3306,charset="utf8")
+# mysql_obj = MySQL(name="demo",user="root",password="123",host="localhost",port=3306,charset="utf8")
 # 推荐
-mysql_obj = Mysql(**MYSQL_DATABASES)
+mysql_obj = MySQL(**MYSQL_DATABASES)
 
 """——————查看所有数据库——————"""
 # database_list = mysql_obj.show_databases()
 # print(database_list)
 """
 ['demo', 'pymysqlmodel_demo']
-"""
-
-"""——————查看所有用户——————"""
-# user_list = mysql_obj.show_user()
-# print(user_list)
-"""
-[{'name': 'root', 'host': 'localhost'}]
-"""
-
-"""——————设置用户登录权限——————"""
-# mysql_obj.set_user_host(username="root", password="admin", host_list=["%","127.0.0.1"])
-# mysql_obj.set_user_host(username="test_data", password="admin", host_list=["%","127.0.0.1"], dbname="test_data")
-# user_list = mysql_obj.show_user()
-# print(user_list)
-"""
-[
-    {'name': 'root', 'host': '%'}, 
-    {'name': 'test_data', 'host': '192.168.1.123'}, 
-    {'name': 'test_data', 'host': '192.168.1.456'}, 
-    {'name': 'root', 'host': 'localhost'}, 
-    {'name': 'test_data', 'host': 'localhost'}
-]
 """
 
 """——————查看所有表——————"""
@@ -96,11 +74,19 @@ class_tb
 ['id', 'name']
 """
 
+# mysql_obj.select()
+# print(mysql_obj.sql)  # 查看执行 sql
+# print(mysql_obj.args)  # 查看执行参数
+"""
+select id, name from `class_tb`
+[]
+"""
+
 """——————添加数据——————"""
 # 添加数据
 
-# mysql_obj.table("class_tb").create(id=None, name="一班")
-
+# row_num = mysql_obj.table("class_tb").create(id=None, name="一班")
+# print(row_num)
 
 # name = "张三"
 # age = "18"
@@ -156,7 +142,7 @@ class_tb
 """
 
 # 指定字段
-# result = mysql_obj.table("student_tb").select("name","age")
+# result = mysql_obj.table("student_tb").fields("name", "age").select()
 # print(result)
 """
 [
@@ -167,8 +153,41 @@ class_tb
 ]
 """
 
+# 排序
+# result = mysql_obj.table("student_tb").where("sid=%s", 1).order_by("-age", "id").select()
+# print(mysql_obj.sql)
+# print(result)
+"""
+select id, name, age, gender, phone, sid from `student_tb` where sid=%s order by `age` desc, `id` desc
+[
+    {'id': 2, 'name': '李四', 'age': 19, 'gender': '女', 'phone': '12345678911', 'sid': 1}, 
+    {'id': 1, 'name': '张三', 'age': 16, 'gender': '男', 'phone': '12345678910', 'sid': 1}, 
+    {'id': 3, 'name': '王五', 'age': 10, 'gender': '男', 'phone': '12345678912', 'sid': 1}
+    {'id': 4, 'name': '赵六', 'age': 10, 'gender': '女', 'phone': '12345678913', 'sid': 1}, 
+]
+"""
+
+# 分页
+# page = 1
+# pagesize = 3
+# mysql_obj.table("student_tb").where("sid=%s", 1).order_by("-age", "id")
+# total, page_number = mysql_obj.page(page=page, pagesize=pagesize)
+# result = mysql_obj.select()
+# print(mysql_obj.sql)
+# print(f"总数：{total}, 页数:{page_number}")
+# print(result)
+"""
+select id, name, age, gender, phone, sid from `student_tb` where sid=%s order by `age` desc, `id` asc LIMIT 3 offset 0
+4 2
+[
+    {'id': 2, 'name': '李四', 'age': 19, 'gender': '女', 'phone': '12345678911', 'sid': 1}, 
+    {'id': 1, 'name': '张三', 'age': 16, 'gender': '男', 'phone': '12345678910', 'sid': 1}, 
+    {'id': 3, 'name': '王五', 'age': 10, 'gender': '男', 'phone': '12345678912', 'sid': 1}
+]
+"""
+
 # 聚合查询 as 解析
-# result = mysql_obj.table("student_tb").where("id>0 group by gender").select("gender", "avg(age) as age")
+# result = mysql_obj.table("student_tb").fields("gender", "avg(age) as age").where("id>0 group by gender").select()
 # print(result)
 """
 [
@@ -192,7 +211,7 @@ class_tb
 """
 
 # 指定字段
-# result = mysql_obj.table("student_tb").where("gender=%s", "女").find("name","phone")
+# result = mysql_obj.table("student_tb").fields("name", "phone").where("gender=%s", "女").find()
 # print(result)
 """
 {
@@ -201,128 +220,19 @@ class_tb
 }
 """
 
-"""——————执行原生 sql——————"""
-# # 可同时执行多条语句
-# # sql 语句要以 ; 号分隔
-# 
-# sql = f"""
-#      select id,name,age  from student_tb where age > 18;
-#      select id,name,phone from student_tb;
-# """
-# mysql_obj.table("student_tb")
-# # 改方法可以执行多条 sql 语句
-# result = mysql_obj.execute_native_sql(sql)
-# # print(result)
-# for i in result:
-#     print(i)
-"""
-[
-    {
-        'name': '结果1', # 结果名称
-        'abstract': {
-            'name': 'select id,name,age  from student_tb where age > 18', # 摘要
-            'info': 'OK', # 信息
-            'select_time': 0.0010004043579101562 # 执行时间
-        }, 
-        'result': [ # 结果
-            {'id': 1, 'name': '张三', 'age': 19}, 
-            {'id': 3, 'name': '王五', 'age': 20}, 
-            {'id': 4, 'name': '赵六', 'age': 23}
-        ]
-    }, 
-    {
-        'name': '结果2', 
-        'abstract': {
-            'name': 'select id,name,phone from student_tb',
-            'info': 'OK', 
-            'select_time': 0.0
-        }, 
-        'result': [
-            {'id': 1, 'name': '张三', 'phone': '12345678910'}, 
-            {'id': 2, 'name': '李四', 'phone': '12345678911'}, 
-            {'id': 3, 'name': '王五', 'phone': '12345678912'}, 
-            {'id': 4, 'name': '赵六', 'phone': '12345678913'}
-        ]
-    }
-
-]
-"""
-
-sql = f"""
-    use demo;
-    select id,name,phone from student_tb;
-    update student_tb set age=19 where id=2
-"""
-# # 改方法可以执行多条 sql 语句
-# result = mysql_obj.execute_native_sql(sql)
-# # print(result)
-# for query_set in result:
-#     print("名称", query_set["name"])
-#     print("摘要", query_set["abstract"]["name"], query_set["abstract"]["info"])
-#     print("信息", query_set["abstract"]["info"])
-#     print("查询时间", query_set["abstract"]["select_time"])
-#     if query_set.get("result"):
-#         print("查询结果", query_set["result"] if len(query_set["result"]) < 11 else query_set["result"][:10])
-#     print("\n")
-"""
-名称 结果1
-摘要 use demo OK
-信息 OK
-查询时间 0.0
-
-
-名称 结果2
-摘要 select id,name,phone from student_tb OK
-信息 OK
-查询时间 0.7977244853973389
-查询结果 [{'id': 1, 'name': '张三', 'phone': '12345678910'}, {'id': 2, 'name': '李四', 'phone': '12345678911'}, {'id': 3, 'name': '王五', 'phone': '12345678912'}, {'id': 4, 'name': '赵六', 'phone': '12345678913'}, {'id': 5, 'name': 'Jackson', 'phone': '7693577033'}, {'id': 6, 'name': 'Man', 'phone': '16514536481'}, {'id': 7, 'name': 'Fu', 'phone': '16836949674'}, {'id': 8, 'name': 'Chow', 'phone': '14741232401'}, {'id': 9, 'name': 'Wong', 'phone': '76984392374'}, {'id': 10, 'name': '卢', 'phone': '76949204670'}]
-
-
-名称 结果3
-摘要 update student_tb set age=18 where id=2 Affected rows：0
-信息 影响行数：1
-查询时间 0.0010013580322265625
-
-
-# 注意事项
-#
-# 单表查询
-# 例：
-# 第一种：手动指定操作表
-# mysql_obj.table("mysql.user") # 指定操作表，获取表字段，否则返回查询的数据异常
-# result = mysql_obj.execute_native_sql("select * from mysql.user;")
-# print(result)
-# 第二种：sql 语句中指定查询字段
-# result = mysql_obj.execute_native_sql("select User,Host from mysql.user;")
-# print(result)
-
-# 多表查询、或其他查询
-# 请勿使用 select *，请在 sql 中指定查询结果字段
-# 例：
-# sql = "select s.name as sname,c.name as cname from student_tb as s, class_tb as c where s.sid = c.id"
-# result = mysql_obj.execute_native_sql(sql)
-# print(result)
-
-
-"""
-
 """——————调用 pymysql 执行——————"""
 # result_field = ["name","age"]
-#
+# 
+# mysql_obj.table("student_tb")
 # # sql 语句不限
 # sql = f"""
 #     select {",".join(result_field)}  from {mysql_obj.table_name} where name like '张%';
 # """
-#
+# 
 # # 调用实例属性 获取游标对象 执行sql语句
-# mysql_obj.mysql_cursor.execute(sql)
-# list_data = mysql_obj.mysql_cursor.fetchall()
+# mysql_obj.cursor.execute(sql)
+# list_data = mysql_obj.cursor.fetchall()
 # print(list_data)
-# # 调用方法 组织数据
-# student_list = mysql_obj.result(result_field,list_data)
-# print(student_list)
-
 """
-(('张三', 18),)
-[{'name': '张三', 'age': 18}]
+(('张三', 16),)
 """

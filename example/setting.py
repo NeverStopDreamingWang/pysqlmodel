@@ -3,7 +3,6 @@ MYSQL_DATABASES = {
     "user": "root",
     "password": "123",
     "host": "localhost",
-    # "host": "192.168.69.148",
     "port": 3306,
     "charset": "utf8",
     "connect_timeout": 2,
