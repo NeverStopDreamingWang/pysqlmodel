@@ -259,25 +259,6 @@ class MySQL():
             print(err)
         return 0
 
-    def delete(self) -> int:
-        """
-        删除满足条件的数据
-        :return 返回受影响的行
-        """
-        try:
-            self.sql = f"DELETE FROM `{self.table_name}`"
-            if len(self.where_sql) > 0:
-                self.sql += f" WHERE {' AND '.join(self.where_sql)}"
-            rowcount = self.cursor.execute(self.sql, self.args)
-            self.connect.commit()
-            return rowcount
-        except Exception as err:
-            self.connect.rollback()
-            raise err
-        finally:
-            self.where_sql = []
-            self.args = []
-
     def update(self, **kwargs) -> int:
         """
         修改数据
@@ -295,6 +276,25 @@ class MySQL():
             args = list(kwargs.values())
             args.extend(self.args)
             self.args = args
+            rowcount = self.cursor.execute(self.sql, self.args)
+            self.connect.commit()
+            return rowcount
+        except Exception as err:
+            self.connect.rollback()
+            raise err
+        finally:
+            self.where_sql = []
+            self.args = []
+
+    def delete(self) -> int:
+        """
+        删除满足条件的数据
+        :return 返回受影响的行
+        """
+        try:
+            self.sql = f"DELETE FROM `{self.table_name}`"
+            if len(self.where_sql) > 0:
+                self.sql += f" WHERE {' AND '.join(self.where_sql)}"
             rowcount = self.cursor.execute(self.sql, self.args)
             self.connect.commit()
             return rowcount
