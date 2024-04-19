@@ -8,18 +8,14 @@
 
 ## 安装
 
-```python
-pip
-install
-PySqlModel
+```cmd
+pip install PySqlModel
 ```
 
 更新
 
-```python
-pip
-install - U
-PySqlModel
+```cmd
+pip install - U PySqlModel
 ```
 
 示例
