@@ -256,8 +256,7 @@ class SQLite():
 
             args = list(kwargs.values())
             args.extend(self.args)
-            self.args = args
-            self.cursor.execute(self.sql, self.args)
+            self.cursor.execute(self.sql, args)
             self.connect.commit()
             return self.cursor.rowcount
         except Exception as err:

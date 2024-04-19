@@ -275,8 +275,7 @@ class MySQL():
 
             args = list(kwargs.values())
             args.extend(self.args)
-            self.args = args
-            rowcount = self.cursor.execute(self.sql, self.args)
+            rowcount = self.cursor.execute(self.sql, args)
             self.connect.commit()
             return rowcount
         except Exception as err:
