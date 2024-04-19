@@ -204,7 +204,6 @@ class MySQL():
         except Exception as err:
             raise err
         finally:
-            self.field_list = []
             self.where_sql = []
             self.limit_sql = ""
             self.order_sql = ""
@@ -238,7 +237,6 @@ class MySQL():
         except Exception as err:
             raise err
         finally:
-            self.field_list = []
             self.where_sql = []
             self.limit_sql = ""
             self.order_sql = ""
