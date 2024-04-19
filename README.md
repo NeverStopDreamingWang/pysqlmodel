@@ -24,7 +24,7 @@ PySqlModel
 
 示例
 
-[example](../example)
+[example](./example)
 
 # 使用介绍
 
