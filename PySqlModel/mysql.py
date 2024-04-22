@@ -224,9 +224,8 @@ class MySQL():
                 self.sql += f" WHERE {' AND '.join(self.where_sql)}"
             if self.order_sql:
                 self.sql += self.order_sql
-            if self.limit_sql:
-                self.sql += self.limit_sql
 
+            self.sql += " LIMIT 1"
             self.cursor.execute(self.sql, self.args)
             row = self.cursor.fetchone()
             if row:
@@ -238,7 +237,6 @@ class MySQL():
             raise err
         finally:
             self.where_sql = []
-            self.limit_sql = ""
             self.order_sql = ""
             self.args = []
 
@@ -271,7 +269,7 @@ class MySQL():
             update_sql = ", ".join([f"`{field}`=%s" for field in kwargs.keys()])
             self.sql = f"UPDATE `{self.table_name}` SET {update_sql}"
             if len(self.where_sql) > 0:
-                self.sql += f" WHERE {' AND '.join(self.where_sql)};"
+                self.sql += f" WHERE {' AND '.join(self.where_sql)}"
 
             args = list(kwargs.values())
             args.extend(self.args)
