@@ -1,7 +1,8 @@
 # 导入MySQL模型
 # 导入数据库配置
+from src.PySQLModel import MySQL
+
 from setting import MYSQL_DATABASES
-from src.PySqlModel import MySQL
 
 # from PySqlModel.mysql import MySQL
 

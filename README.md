@@ -1,4 +1,4 @@
-# PySqlModel
+# PySQLModel
 
 ## 介绍
 
@@ -9,13 +9,13 @@
 ## 安装
 
 ```cmd
-pip install PySqlModel
+pip install PySQLModel
 ```
 
 更新
 
 ```cmd
-pip install - U PySqlModel
+pip install - U PySQLModel
 ```
 
 示例
@@ -28,8 +28,8 @@ pip install - U PySqlModel
 
 ```python
 # 导入MySQL模型
-from PySqlModel import MySQL
-# from PySqlModel.mysql import MySQL
+from PySQLModel import MySQL
+# from PySQLModel.mysql import MySQL
 
 # 导入数据库配置
 from setting import MYSQL_DATABASES

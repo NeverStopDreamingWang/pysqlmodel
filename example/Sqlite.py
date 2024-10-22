@@ -1,5 +1,6 @@
+from src.PySQLModel import SQLite
+
 from setting import SQLITE_DATABASE
-from src.PySqlModel import SQLite
 
 """——————连接数据库——————"""
 # 数据库配置
