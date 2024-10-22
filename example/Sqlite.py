@@ -1,4 +1,4 @@
-from src.PySQLModel import SQLite
+from PySQLModel import SQLite
 
 from setting import SQLITE_DATABASE
 

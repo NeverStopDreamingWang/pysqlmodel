@@ -37,23 +37,6 @@ class MySQL():
         self.sql = ""  # 执行 sql
         self.args = []  # 条件参数
 
-    def show_databases(self, show_system: bool = False) -> List[str]:
-        """
-        查询所有数据库
-        :param show_system: 是否返回系统数据库,默认不返回
-        :return list 返回一个列表
-        """
-        self.sql = "show databases;"
-        self.cursor.execute(self.sql)
-        rows = self.cursor.fetchall()
-        database_list = []
-        for row in rows:
-            db_name = row[0]
-            if show_system is False and db_name in self.__SYSTEM_DATABASES:
-                continue
-            database_list.append(db_name)
-        return database_list  # 返回当前数据库内所有的表
-
     def show_table(self) -> List[str]:
         """
         查询当前数据库中所有表
@@ -109,8 +92,8 @@ class MySQL():
     def create(self, **kwargs) -> int:
         """
         添加一条数据
-        :param kwargs: key = value/字段 = 值
-        :return 返回受影响的行
+        :param kwargs: 字段 = 值
+        :return 添加成功：返回创建 id
         """
         try:
             field_sql = "`,`".join([field.strip(" `'\"") for field in kwargs.keys()])
@@ -138,8 +121,8 @@ class MySQL():
     def where(self, sql: str, *args):
         """
         条件函数
-        :param native_sql: 原生sql语句
-        :param kwargs: key = value/字段 = 值 条件
+        :param sql: sql 条件语句
+        :param args: 值
         :return: self
         """
         self.where_sql.append(sql)

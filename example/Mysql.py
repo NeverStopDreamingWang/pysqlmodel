@@ -1,6 +1,6 @@
 # 导入MySQL模型
 # 导入数据库配置
-from src.PySQLModel import MySQL
+from PySQLModel import MySQL
 
 from setting import MYSQL_DATABASES
 
@@ -9,7 +9,7 @@ from setting import MYSQL_DATABASES
 """——————连接数据库——————"""
 # 数据库配置
 # DATABASES = {
-#     "name": "demo",
+#     "database": "demo",
 #     "user": "root",
 #     "password": "123",
 #     "host": "localhost",
@@ -19,13 +19,6 @@ from setting import MYSQL_DATABASES
 # mysql_obj = MySQL(name="demo",user="root",password="123",host="localhost",port=3306,charset="utf8")
 # 推荐
 mysql_obj = MySQL(**MYSQL_DATABASES)
-
-"""——————查看所有数据库——————"""
-# database_list = mysql_obj.show_databases()
-# print(database_list)
-"""
-['demo', 'pymysqlmodel_demo']
-"""
 
 """——————查看所有表——————"""
 # table_list = mysql_obj.show_table()
@@ -95,8 +88,8 @@ select id, name from `class_tb`
 # phone = "12345678910"
 # sid = 1
 # 
-# create_row = mysql_obj.table("student_tb").create(name=name,age=age,gender=gender,phone=phone, sid=sid)
-# print(create_row)
+# create_id = mysql_obj.table("student_tb").create(name=name,age=age,gender=gender,phone=phone, sid=sid)
+# print(create_id)
 """
 1
 """
@@ -108,8 +101,8 @@ select id, name from `class_tb`
 #     "phone": "12345678910",
 #     "sid": 1,
 # }
-# create_row = mysql_obj.table("student_tb").create(**temp_dict)
-# print(create_row)
+# create_id = mysql_obj.table("student_tb").create(**temp_dict)
+# print(create_id)
 """
 1
 """

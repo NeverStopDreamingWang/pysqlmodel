@@ -36,7 +36,7 @@ from setting import MYSQL_DATABASES
 
 # 数据库配置
 # DATABASES = {
-#     "name": "demo",
+#     "database": "demo",
 #     "user": "root",
 #     "password": "123",
 #     "host": "localhost",
@@ -46,17 +46,6 @@ from setting import MYSQL_DATABASES
 # mysql_obj = MySQL(name="demo",user="root",password="123",host="localhost",port=3306,charset="utf8")
 # 推荐
 mysql_obj = MySQL(**MYSQL_DATABASES)
-```
-
----
-
-#### show_databases 查看所有数据库
-
-```python
-database_list = mysql_obj.show_databases()
-print(database_list)
-
-['demo', 'pymysqlmodel_demo']
 ```
 
 ---
@@ -144,8 +133,8 @@ gender = 1
 phone = "12345678910"
 sid = 1
 
-create_row = mysql_obj.table("student_tb").create(name=name, age=age, gender=gender, phone=phone, sid=sid)
-print(create_row)
+create_id = mysql_obj.table("student_tb").create(name=name, age=age, gender=gender, phone=phone, sid=sid)
+print(create_id)
 """
 1
 """
@@ -157,8 +146,8 @@ temp_dict = {
     "phone": "12345678910",
     "sid": 1,
 }
-# create_row = mysql_obj.table("student_tb").create(**temp_dict)
-print(create_row)
+create_id = mysql_obj.table("student_tb").create(**temp_dict)
+print(create_id)
 """
 1
 """
@@ -330,8 +319,3 @@ print(list_data)
 """
 ```
 
-# 总结
-
-**如果觉得还不错，那就点个赞吧！**
-
-**欢迎大家使用！如果发现有什么bug欢迎在评论区留言！**

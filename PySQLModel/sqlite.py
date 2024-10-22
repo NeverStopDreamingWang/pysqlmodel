@@ -91,8 +91,8 @@ class SQLite():
     def create(self, **kwargs) -> int:
         """
         添加一条数据
-        :param kwargs: 接收一个字典，key = value 字段 = 值
-        :return: 添加成功：返回 创建 id
+        :param kwargs: 字段 = 值
+        :return: 添加成功：返回创建 id
         """
         try:
             field_sql = "`,`".join([field.strip(" `'\"") for field in kwargs.keys()])
@@ -120,8 +120,8 @@ class SQLite():
     def where(self, sql: str, *args):
         """
         条件函数
-        :param native_sql: 原生sql语句
-        :param kwargs: key = value/字段 = 值 条件
+        :param sql: sql 条件语句
+        :param args: 值
         :return: self
         """
         self.where_sql.append(sql)
@@ -242,7 +242,7 @@ class SQLite():
         """
         修改数据
         :param kwargs: 接收一个字典，key == value 条件
-        :return: 影响行数
+        :return: 返回受影响的行
         """
         try:
             if not kwargs: raise ValueError(f"**kwargs")
@@ -267,7 +267,7 @@ class SQLite():
     def delete(self) -> int:
         """
         删除满足条件的数据
-        :return: 影响行数
+        :return: 返回受影响的行
         """
         try:
             self.sql = f"DELETE FROM `{self.table_name}`"
