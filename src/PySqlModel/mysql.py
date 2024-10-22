@@ -15,7 +15,7 @@ class MySQL():
     def __init__(self, connect=None, **kwargs):
         """
         DATABASES = {
-            "name": "demo",
+            "database": "demo",
             "user": "root",
             "password": "123",
             "host": "localhost",
@@ -118,10 +118,10 @@ class MySQL():
 
             # id 字段为null ，默认自增
             self.sql = f"INSERT INTO `{self.table_name}`  (`{field_sql}`) VALUES ({create_sql});"
-            args = kwargs.values()
-            rowcount = self.cursor.execute(self.sql, args)
+            args = list(kwargs.values())
+            self.cursor.execute(self.sql, args)
             self.connect.commit()
-            return rowcount
+            return self.cursor.lastrowid
         except Exception as err:
             self.connect.rollback()
             raise err

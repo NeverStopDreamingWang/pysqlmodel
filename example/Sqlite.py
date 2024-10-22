@@ -1,5 +1,5 @@
-from PySqlModel import SQLite
 from setting import SQLITE_DATABASE
+from src.PySqlModel import SQLite
 
 """——————连接数据库——————"""
 # 数据库配置
@@ -26,7 +26,7 @@ sqlite3_obj = SQLite(**SQLITE_DATABASE)
 # 创建表，已存在直接返回，不存在则创建
 
 # 表名
-# table_name = "student_tb"
+table_name = "student_tb"
 # 表字段
 # 原生 sql 语句
 # student_table_fields = {
@@ -37,12 +37,12 @@ sqlite3_obj = SQLite(**SQLITE_DATABASE)
 #     "phone": "varchar(11)",
 #     "sid": "int not null",
 # }
-# # 
+# 
 # sqlite3_obj.create_table(table_name,student_table_fields)
 
 """——————指定操作表——————"""
 # 每次执行查询、添加、删除、修改需指定操作表
-# sqlite3_obj.table("student_tb")
+sqlite3_obj.table("student_tb")
 
 # 主要用于设置 表名，获取表字段
 # 同一对象只需设置一次即可
@@ -76,12 +76,12 @@ select id, name, age, gender, phone from `student_tb`
 #     "phone": "12345678910",
 #     "sid": 1,
 # }
-# create_row = sqlite3_obj.table("student_tb").create(name=name,age=age,gender=gender,phone=phone, sid=sid)
-# print(create_row)
+# create_id = sqlite3_obj.table("student_tb").create(name=name,age=age,gender=gender,phone=phone, sid=sid)
+# print(create_id)
 
 # # 或这样
-# create_row = sqlite3_obj.create(**temp_dict)
-# print(create_row)
+# create_id = sqlite3_obj.create(**temp_dict)
+# print(create_id)
 
 """——————删除数据——————"""
 # delete_row = sqlite3_obj.table("student_tb").where("id=?", 5).delete()

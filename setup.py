@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="PySqlModel",
-    version="1.1.4",
+    version="1.1.6",
     author="HanFengFeng",
     author_email="mr_jia_han@qq.com",
     description="简单方便的数据库查询包",

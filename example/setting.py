@@ -1,5 +1,5 @@
 MYSQL_DATABASES = {
-    "db": "demo",
+    "database": "demo",
     "user": "root",
     "password": "123",
     "host": "localhost",

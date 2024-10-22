@@ -1,9 +1,9 @@
 # 导入MySQL模型
-from PySqlModel import MySQL
-# from PySqlModel.mysql import MySQL
-
 # 导入数据库配置
 from setting import MYSQL_DATABASES
+from src.PySqlModel import MySQL
+
+# from PySqlModel.mysql import MySQL
 
 """——————连接数据库——————"""
 # 数据库配置
@@ -63,7 +63,7 @@ mysql_obj = MySQL(**MYSQL_DATABASES)
 
 """——————指定操作表——————"""
 # 每次执行查询、添加、删除、修改需指定操作表
-# mysql_obj.table("class_tb")
+mysql_obj.table("class_tb")
 
 # 主要用于设置 表名，获取表字段
 # 同一对象只需设置一次即可

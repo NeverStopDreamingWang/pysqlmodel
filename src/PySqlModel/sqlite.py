@@ -92,7 +92,7 @@ class SQLite():
         """
         添加一条数据
         :param kwargs: 接收一个字典，key = value 字段 = 值
-        :return: 添加成功：返回 True 添加失败：返回 Flase
+        :return: 添加成功：返回 创建 id
         """
         try:
             field_sql = "`,`".join([field.strip(" `'\"") for field in kwargs.keys()])
@@ -103,7 +103,7 @@ class SQLite():
             args = list(kwargs.values())
             self.cursor.execute(self.sql, args)
             self.connect.commit()
-            return self.cursor.rowcount
+            return self.cursor.lastrowid
         except Exception as err:
             self.connect.rollback()
             raise err
