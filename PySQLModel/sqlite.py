@@ -263,6 +263,22 @@ class SQLite():
             print(err)
         return 0
 
+    def exists(self) -> bool:
+        """
+        判断是否存在
+        :return 返回 bool 类型
+        """
+        try:
+            self.sql = f"SELECT 1 FROM `{self.table_name}`"
+            if len(self.where_sql) > 0:
+                self.sql += f" WHERE {' AND '.join(self.where_sql)}"
+
+            self.cursor.execute(self.sql, self.args)
+            return self.cursor.fetchone() is not None
+        except Exception as err:
+            print(err)
+        return False
+
     def update(self, **kwargs) -> int:
         """
         修改数据
