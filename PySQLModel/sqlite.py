@@ -28,6 +28,7 @@ class SQLite():
         self.field_list = []  # 表字段
         self.where_sql = []  # 条件语句
         self.limit_sql = ""  # 分页
+        self.group_sql = ""  # 分组
         self.order_sql = ""  # 排序
         self.sql = ""  # 执行 sql
         self.args = []  # 条件参数
@@ -86,6 +87,13 @@ class SQLite():
         :return: self
         """
         self.table_name = table_name.strip(" `'\"")  # 表名
+        self.field_list = []  # 表字段
+        self.where_sql = []  # 条件语句
+        self.limit_sql = ""  # 分页
+        self.group_sql = ""  # 分组
+        self.order_sql = ""  # 排序
+        self.sql = ""  # 执行 sql
+        self.args = []  # 条件参数
         return self
 
     def create(self, **kwargs) -> int:
@@ -126,6 +134,17 @@ class SQLite():
         """
         self.where_sql.append(sql)
         self.args.extend(args)
+        return self
+
+    def group_by(self, *orders, sql: str = ""):
+        if sql:
+            self.group_sql = " " + sql
+            return self
+
+        if len(orders) > 0:
+            self.group_sql = f" GROUP BY {', '.join(orders)}"
+        else:
+            self.group_sql = ""
         return self
 
     def order_by(self, *orders):
@@ -174,6 +193,8 @@ class SQLite():
             self.sql = f"SELECT {fields_str} FROM `{self.table_name}`"
             if len(self.where_sql) > 0:
                 self.sql += f" WHERE {' AND '.join(self.where_sql)}"
+            if self.group_sql:
+                self.sql += self.group_sql
             if self.order_sql:
                 self.sql += self.order_sql
             if self.limit_sql:
@@ -187,6 +208,7 @@ class SQLite():
         finally:
             self.where_sql = []
             self.limit_sql = ""
+            self.group_sql = ""
             self.order_sql = ""
             self.args = []
 
@@ -203,6 +225,8 @@ class SQLite():
             self.sql = f"SELECT {fields_str} FROM `{self.table_name}`"
             if len(self.where_sql) > 0:
                 self.sql += f" WHERE {' AND '.join(self.where_sql)}"
+            if self.group_sql:
+                self.sql += self.group_sql
             if self.order_sql:
                 self.sql += self.order_sql
 
@@ -218,6 +242,7 @@ class SQLite():
             raise err
         finally:
             self.where_sql = []
+            self.group_sql = ""
             self.order_sql = ""
             self.args = []
 
