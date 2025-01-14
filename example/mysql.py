@@ -1,37 +1,7 @@
-# PySQLModel
-
-## 介绍
-
-支持 MySQL、SQLite3 数据库。
-
-方便快捷操作数据库。
-
-## 安装
-
-```cmd
-pip install PySQLModel
-```
-
-更新
-
-```cmd
-pip install - U PySQLModel
-```
-
-示例
-
-[example](./example)
-
-# 使用介绍
-
-#### 连接数据库
-
-```python
 # 导入MySQL模型
-from PySQLModel import MySQL
-# from PySQLModel.mysql import MySQL
-
 # 导入数据库配置
+from PySQLModel import MySQL
+
 from setting import MYSQL_DATABASES
 
 
@@ -49,13 +19,8 @@ def init_db():
     # mysql_obj = MySQL(name="demo",user="root",password="123",host="localhost",port=3306,charset="utf8")
     # 推荐
     return MySQL(**MYSQL_DATABASES)
-```
 
----
 
-#### show_table 查看所有表
-
-```python
 def show_tables_example(mysql_obj):
     """查看所有表示例"""
     table_list = mysql_obj.show_table()
@@ -63,13 +28,8 @@ def show_tables_example(mysql_obj):
     """
     ['student_tb', 'test_data', 'test_data_copy1', 'test_data_copy2', 'test_data_copy3', 'test_data_copy4']
     """
-```
 
----
 
-#### create_table 创建表
-
-```python
 def create_tables_example(mysql_obj):
     """创建表示例"""
     # 创建表，已存在直接返回，不存在则创建
@@ -97,13 +57,8 @@ def create_tables_example(mysql_obj):
     )COMMENT '学生表';
     """
     mysql_obj.create_table(native_sql=sql)
-```
 
----
 
-#### table 指定操作表
-
-```python
 def table_operations_example(mysql_obj):
     """表操作示例"""
     # 每次执行查询、添加、删除、修改需指定操作表
@@ -125,13 +80,8 @@ def table_operations_example(mysql_obj):
     select id, name from `class_tb`
     []
     """
-```
 
----
 
-#### create 添加数据
-
-```python
 def insert_data_example(mysql_obj):
     """添加数据示例"""
     row_num = mysql_obj.table("class_tb").create(id=None, name="一班")
@@ -161,13 +111,8 @@ def insert_data_example(mysql_obj):
     """
     1
     """
-```
 
----
 
-#### delete 删除数据
-
-```python
 def delete_data_example(mysql_obj):
     """删除数据示例"""
     delete_row = mysql_obj.table("student_tb").where("id=%s", 5).delete()
@@ -175,13 +120,8 @@ def delete_data_example(mysql_obj):
     """
     1
     """
-```
 
----
 
-#### update 修改数据
-
-```python
 def update_data_example(mysql_obj):
     """修改数据示例"""
     update_row = mysql_obj.table("student_tb").where("age=%s", 18).update(age=19)
@@ -190,15 +130,7 @@ def update_data_example(mysql_obj):
     2
     """
 
-```
 
----
-
-#### select 查询数据
-
-查询所有数据
-
-```python
 def query_data_example(mysql_obj):
     """查询数据示例"""
     # 查询所有数据
@@ -225,11 +157,7 @@ def query_data_example(mysql_obj):
     ]
     """
 
-```
 
-排序
-
-```python
 def order_by_example(mysql_obj):
     """排序示例"""
     result = mysql_obj.table("student_tb").where("sid=%s", 1).order_by("-age", "id").select()
@@ -244,11 +172,8 @@ def order_by_example(mysql_obj):
         {'id': 4, 'name': '赵六', 'age': 10, 'gender': '女', 'phone': '12345678913', 'sid': 1}, 
     ]
     """
-```
 
-分页
 
-```python
 def pagination_example(mysql_obj):
     """分页示例"""
     page = 1
@@ -269,11 +194,7 @@ def pagination_example(mysql_obj):
     ]
     """
 
-```
 
-聚合查询 as 解析
-
-```python
 def aggregation_example(mysql_obj):
     """聚合查询示例"""
     result = mysql_obj.table("student_tb").fields("gender", "avg(age) as age").where("id>0 group by gender").select()
@@ -284,13 +205,8 @@ def aggregation_example(mysql_obj):
         {'gender': '女', 'age': Decimal('13.5000')}
     ]
     """
-```
 
----
 
-#### find 查询单条数据
-
-```python
 def find_example(mysql_obj):
     """查询单条数据示例"""
     result = mysql_obj.table("student_tb").find()
@@ -315,13 +231,27 @@ def find_example(mysql_obj):
         'phone': '12345678911'
     }
     """
-```
 
----
 
-#### 事务
+def raw_sql_example(mysql_obj):
+    """原生SQL执行示例"""
+    result_field = ["name", "age"]
 
-```python
+    mysql_obj.table("student_tb")
+    # sql 语句不限
+    sql = f"""
+        select {",".join(result_field)}  from {mysql_obj.table_name} where name like '张%';
+    """
+
+    # 调用实例属性 获取游标对象 执行sql语句
+    mysql_obj.cursor.execute(sql)
+    list_data = mysql_obj.cursor.fetchall()
+    print(list_data)
+    """
+    (('张三', 16),)
+    """
+
+
 def transaction_example(mysql_obj):
     """事务使用示例"""
     try:
@@ -344,29 +274,29 @@ def transaction_example(mysql_obj):
         print("事务执行成功")
     except Exception as e:
         print(f"事务执行失败: {e}")
-```
 
----
 
-#### 调用 pymysql 执行
+def main():
+    """主函数"""
+    mysql_obj = init_db()
+    try:
+        # 这里可以调用各个示例函数
+        show_tables_example(mysql_obj)
+        create_tables_example(mysql_obj)
+        table_operations_example(mysql_obj)
+        # insert_data_example(mysql_obj)
+        # delete_data_example(mysql_obj)
+        # update_data_example(mysql_obj)
+        # query_data_example(mysql_obj)
+        # order_by_example(mysql_obj)
+        # pagination_example(mysql_obj)
+        # aggregation_example(mysql_obj)
+        # find_example(mysql_obj)
+        # raw_sql_example(mysql_obj)
+        transaction_example(mysql_obj)
+    finally:
+        mysql_obj.close()
 
-```python
-def raw_sql_example(mysql_obj):
-    """原生SQL执行示例"""
-    result_field = ["name", "age"]
 
-    mysql_obj.table("student_tb")
-    # sql 语句不限
-    sql = f"""
-        select {",".join(result_field)}  from {mysql_obj.table_name} where name like '张%';
-    """
-
-    # 调用实例属性 获取游标对象 执行sql语句
-    mysql_obj.cursor.execute(sql)
-    list_data = mysql_obj.cursor.fetchall()
-    print(list_data)
-    """
-    (('张三', 16),)
-    """
-```
-
+if __name__ == "__main__":
+    main()

@@ -4,6 +4,7 @@
 @Author:函封封
 """
 import math
+from contextlib import contextmanager
 from typing import Tuple, Union, List
 
 
@@ -14,6 +15,10 @@ class MySQL():
 
     def __init__(self, connect=None, **kwargs):
         """
+        初始化数据库连接
+        :param connect: 现有的数据库连接
+        :param kwargs: 数据库连接参数
+        示例:
         DATABASES = {
             "database": "demo",
             "user": "root",
@@ -28,6 +33,7 @@ class MySQL():
         else:
             import pymysql
             self.connect = pymysql.connect(**kwargs)
+
         self.cursor = self.connect.cursor()  # 创建游标对象
         self.table_name = None  # 表名
         self.field_list = []  # 表字段
@@ -37,6 +43,48 @@ class MySQL():
         self.order_sql = ""  # 排序
         self.sql = ""  # 执行 sql
         self.args = []  # 条件参数
+
+    def close(self):
+        """
+        关闭数据库连接和游标。
+        注意：此方法会关闭所有克隆对象共享的数据库连接。
+        只有在确定所有相关操作都完成时才调用此方法。
+        """
+        if hasattr(self, 'cursor') and self.cursor:
+            self.cursor.close()
+            self.cursor = None
+        if hasattr(self, 'connect') and self.connect:
+            self.connect.close()
+            self.connect = None
+
+    @contextmanager
+    def atomic(self):
+        """
+        事务上下文管理器
+        用法:
+            with db.atomic():
+                db.table("users").create(...)
+                db.table("orders").create(...)
+        """
+        try:
+            self.begin()
+            yield
+            self.commit()
+        except Exception as e:
+            self.rollback()
+            raise e
+
+    def begin(self):
+        """开始事务"""
+        self.connect.begin()
+
+    def commit(self):
+        """提交事务"""
+        self.connect.commit()
+
+    def rollback(self):
+        """回滚事务"""
+        self.connect.rollback()
 
     def show_table(self) -> List[str]:
         """
@@ -73,13 +121,22 @@ class MySQL():
             self.sql = f"""CREATE TABLE `{self.table_name}`(
   {create_field}
 );"""
-        try:
-            self.cursor.execute(self.sql)
-            self.connect.commit()
-            return True
-        except Exception as err:
-            self.connect.rollback()
-            raise err
+        self.cursor.execute(self.sql)
+        self.connect.commit()
+        return True
+
+    def _clone(self):
+        """创建当前对象的副本"""
+        clone = MySQL(connect=self.connect)
+        clone.table_name = self.table_name
+        clone.field_list = self.field_list.copy()
+        clone.where_sql = self.where_sql.copy()
+        clone.limit_sql = self.limit_sql
+        clone.group_sql = self.group_sql
+        clone.order_sql = self.order_sql
+        clone.sql = self.sql
+        clone.args = self.args.copy()
+        return clone
 
     def table(self, table_name: str):
         """
@@ -101,21 +158,15 @@ class MySQL():
         """
         添加一条数据
         :param kwargs: 字段 = 值
-        :return 添加成功：返回创建 id
+        :return: 返回创建 id
         """
-        try:
-            field_sql = "`,`".join([field.strip(" `'\"") for field in kwargs.keys()])
-            create_sql = ",".join(["%s"] * len(kwargs))
+        field_sql = "`,`".join([field.strip(" `'\"") for field in kwargs.keys()])
+        create_sql = ",".join(["%s"] * len(kwargs))
 
-            # id 字段为null ，默认自增
-            self.sql = f"INSERT INTO `{self.table_name}`  (`{field_sql}`) VALUES ({create_sql});"
-            args = list(kwargs.values())
-            self.cursor.execute(self.sql, args)
-            self.connect.commit()
-            return self.cursor.lastrowid
-        except Exception as err:
-            self.connect.rollback()
-            raise err
+        self.sql = f"INSERT INTO `{self.table_name}`  (`{field_sql}`) VALUES ({create_sql});"
+        args = list(kwargs.values())
+        self.cursor.execute(self.sql, args)
+        return self.cursor.lastrowid
 
     def fields(self, *fields):
         """
@@ -123,8 +174,9 @@ class MySQL():
         :param fields: 字段
         :return: self
         """
-        self.field_list = fields
-        return self
+        clone = self._clone()
+        clone.field_list = fields
+        return clone
 
     def where(self, sql: str, *args):
         """
@@ -133,22 +185,36 @@ class MySQL():
         :param args: 值
         :return: self
         """
-        self.where_sql.append(sql)
-        self.args.extend(args)
-        return self
+        clone = self._clone()
+        clone.where_sql.append(sql)
+        clone.args.extend(args)
+        return clone
 
     def group_by(self, *orders, sql: str = ""):
+        """
+        分组函数
+        :param orders: 分组字段
+        :param sql: 分组sql语句
+        :return: self
+        """
+        clone = self._clone()
         if sql:
-            self.group_sql = " " + sql
-            return self
+            clone.group_sql = " " + sql
+            return clone
 
         if len(orders) > 0:
-            self.group_sql = f" GROUP BY {', '.join(orders)}"
+            clone.group_sql = f" GROUP BY {', '.join(orders)}"
         else:
-            self.group_sql = ""
-        return self
+            clone.group_sql = ""
+        return clone
 
     def order_by(self, *orders):
+        """
+        排序函数
+        :param orders: 排序字段
+        :return: self
+        """
+        clone = self._clone()
         order_fields = []
         for order in orders:
             order = str(order).strip(" `'\"")
@@ -163,17 +229,24 @@ class MySQL():
                 sequence = "ASC"
             order_fields.append(f"`{order_sql}` {sequence}")
         if len(order_fields) > 0:
-            self.order_sql = f" ORDER BY {', '.join(order_fields)}"
+            clone.order_sql = f" ORDER BY {', '.join(order_fields)}"
         else:
-            self.order_sql = ""
-        return self
+            clone.order_sql = ""
+        return clone
 
     # 设置分页数据，返回总数据量，总页数
     def page(self, page: int, pagesize: int) -> Tuple[int, int]:
+        """
+        设置分页数据，返回总数据量，总页数
+        :param page: 页码
+        :param pagesize: 每页数量
+        :return: (总数据量, 总页数)
+        """
         if not isinstance(page, int):
             page = int(page)
         if not isinstance(pagesize, int):
             pagesize = int(pagesize)
+
         self.limit_sql = " LIMIT {size} OFFSET {offset}".format(
             size=pagesize,
             offset=(page - 1) * pagesize,
@@ -186,83 +259,63 @@ class MySQL():
         查询数据库，返回全部数据
         :return list[dict] 返回查询到的所有行
         """
-        try:
-            if len(self.field_list) == 0:
-                self.field_list = self.__get_fields()
+        if len(self.field_list) == 0:
+            self.field_list = self.__get_fields()
 
-            fields_str = ", ".join(self.field_list)
-            self.sql = f"SELECT {fields_str} FROM `{self.table_name}`"
-            if len(self.where_sql) > 0:
-                self.sql += f" WHERE {' AND '.join(self.where_sql)}"
-            if self.group_sql:
-                self.sql += self.group_sql
-            if self.order_sql:
-                self.sql += self.order_sql
-            if self.limit_sql:
-                self.sql += self.limit_sql
+        fields_str = ", ".join(self.field_list)
+        self.sql = f"SELECT {fields_str} FROM `{self.table_name}`"
+        if len(self.where_sql) > 0:
+            self.sql += f" WHERE {' AND '.join(self.where_sql)}"
+        if self.group_sql:
+            self.sql += self.group_sql
+        if self.order_sql:
+            self.sql += self.order_sql
+        if self.limit_sql:
+            self.sql += self.limit_sql
 
-            self.cursor.execute(self.sql, self.args)
-            rows = self.cursor.fetchall()
-            result_field = self.__extract_field_list()
-            return [dict(zip(result_field, row)) for row in rows]
-        except Exception as err:
-            raise err
-        finally:
-            self.where_sql = []
-            self.limit_sql = ""
-            self.group_sql = ""
-            self.order_sql = ""
-            self.args = []
+        self.cursor.execute(self.sql, self.args)
+        rows = self.cursor.fetchall()
+        result_field = self.__extract_field_list()
+        return [dict(zip(result_field, row)) for row in rows]
 
     def find(self) -> Union[dict, None]:
         """
         查询数据库，返回第一条数据
         :return dict
         """
-        try:
-            if len(self.field_list) == 0:
-                self.field_list = self.__get_fields()
+        if len(self.field_list) == 0:
+            self.field_list = self.__get_fields()
 
-            fields_str = ", ".join(self.field_list)
-            self.sql = f"SELECT {fields_str} FROM `{self.table_name}`"
-            if len(self.where_sql) > 0:
-                self.sql += f" WHERE {' AND '.join(self.where_sql)}"
-            if self.group_sql:
-                self.sql += self.group_sql
-            if self.order_sql:
-                self.sql += self.order_sql
+        fields_str = ", ".join(self.field_list)
+        self.sql = f"SELECT {fields_str} FROM `{self.table_name}`"
+        if len(self.where_sql) > 0:
+            self.sql += f" WHERE {' AND '.join(self.where_sql)}"
+        if self.group_sql:
+            self.sql += self.group_sql
+        if self.order_sql:
+            self.sql += self.order_sql
 
-            self.sql += " LIMIT 1"
-            self.cursor.execute(self.sql, self.args)
-            row = self.cursor.fetchone()
-            if row:
-                result_field = self.__extract_field_list()
-                kwargs = dict(zip(result_field, row))
-                return kwargs
-            return None
-        except Exception as err:
-            raise err
-        finally:
-            self.where_sql = []
-            self.group_sql = ""
-            self.order_sql = ""
-            self.args = []
+        self.sql += " LIMIT 1"
+        self.cursor.execute(self.sql, self.args)
+        row = self.cursor.fetchone()
+        if row:
+            result_field = self.__extract_field_list()
+            kwargs = dict(zip(result_field, row))
+            return kwargs
+        return None
 
     def count(self) -> int:
         """
         查询条数
         :return 返回查询条数
         """
-        try:
-            self.sql = f"SELECT COUNT(*) FROM `{self.table_name}`"
-            if len(self.where_sql) > 0:
-                self.sql += f" WHERE {' AND '.join(self.where_sql)}"
-            self.cursor.execute(self.sql, self.args)
-            row = self.cursor.fetchone()
-            if row:
-                return row[0]
-        except Exception as err:
-            print(err)
+        self.sql = f"SELECT COUNT(*) FROM `{self.table_name}`"
+        if len(self.where_sql) > 0:
+            self.sql += f" WHERE {' AND '.join(self.where_sql)}"
+        self.cursor.execute(self.sql, self.args)
+        row = self.cursor.fetchone()
+        if row:
+            return row[0]
         return 0
 
     def exists(self) -> bool:
@@ -270,62 +323,43 @@ class MySQL():
         判断是否存在
         :return 返回 bool 类型
         """
-        try:
-            self.sql = f"SELECT 1 FROM `{self.table_name}`"
-            if len(self.where_sql) > 0:
-                self.sql += f" WHERE {' AND '.join(self.where_sql)}"
+        self.sql = f"SELECT 1 FROM `{self.table_name}`"
+        if len(self.where_sql) > 0:
+            self.sql += f" WHERE {' AND '.join(self.where_sql)}"
 
-            self.cursor.execute(self.sql, self.args)
-            return self.cursor.fetchone() is not None
-        except Exception as err:
-            print(err)
-        return False
+        self.cursor.execute(self.sql, self.args)
+        return self.cursor.fetchone() is not None
 
     def update(self, **kwargs) -> int:
         """
         修改数据
         :param kwargs: key = value/字段 = 值 条件
-        :return 返回受影响的行
+        :return: 返回受影响的行
         """
-        try:
-            if not kwargs: raise ValueError(f"**kwargs")
+        if not kwargs:
+            raise ValueError("No fields to update")
 
-            update_sql = ", ".join([f"`{field}`=%s" for field in kwargs.keys()])
-            self.sql = f"UPDATE `{self.table_name}` SET {update_sql}"
-            if len(self.where_sql) > 0:
-                self.sql += f" WHERE {' AND '.join(self.where_sql)}"
+        update_sql = ", ".join([f"`{field}`=%s" for field in kwargs.keys()])
+        self.sql = f"UPDATE `{self.table_name}` SET {update_sql}"
+        if len(self.where_sql) > 0:
+            self.sql += f" WHERE {' AND '.join(self.where_sql)}"
 
-            args = list(kwargs.values())
-            args.extend(self.args)
+        args = list(kwargs.values())
+        args.extend(self.args)
 
-            rowcount = self.cursor.execute(self.sql, args)
-            self.connect.commit()
-            return rowcount
-        except Exception as err:
-            self.connect.rollback()
-            raise err
-        finally:
-            self.where_sql = []
-            self.args = []
+        rowcount = self.cursor.execute(self.sql, args)
+        return rowcount
 
     def delete(self) -> int:
         """
         删除满足条件的数据
-        :return 返回受影响的行
+        :return: 返回受影响的行
         """
-        try:
-            self.sql = f"DELETE FROM `{self.table_name}`"
-            if len(self.where_sql) > 0:
-                self.sql += f" WHERE {' AND '.join(self.where_sql)}"
-            rowcount = self.cursor.execute(self.sql, self.args)
-            self.connect.commit()
-            return rowcount
-        except Exception as err:
-            self.connect.rollback()
-            raise err
-        finally:
-            self.where_sql = []
-            self.args = []
+        self.sql = f"DELETE FROM `{self.table_name}`"
+        if len(self.where_sql) > 0:
+            self.sql += f" WHERE {' AND '.join(self.where_sql)}"
+        rowcount = self.cursor.execute(self.sql, self.args)
+        return rowcount
 
     def __get_fields(self) -> list:
         if self.table_name is None:
@@ -339,7 +373,6 @@ class MySQL():
     def __extract_field_list(self) -> list:
         """
         解析字段列表，获取字段名称
-        :param field_list: list 接受字段列表
         :return list 返回字段列表
         """
         result_field = []
@@ -354,10 +387,3 @@ class MySQL():
                 continue
             result_field.append(field)
         return result_field
-
-    def close(self):
-        self.cursor.close()
-        self.connect.close()
-
-    def __del__(self):
-        self.close()
